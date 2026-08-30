@@ -4,7 +4,20 @@ Application iOS personnelle de capture vocale : dictée, transcription, mise en 
 
 ## État du projet
 
-**2026-08-30 — Cadrage proposé, en attente de validation.** Dépôt initialisé, aucun code. Flutter non installé sur la machine (Debian/WSL2). Prochaine étape après validation : lot 0 (socle).
+**2026-08-30 — Cadrage validé par l'utilisateur.** Arborescence par défaut à revoir plus tard avec lui.
+
+**Appareil cible** : iPhone 16, iOS 26.2.
+
+**2026-08-30 — Lot 0, partie locale terminée.**
+- Flutter 3.47.2 stable installé dans `~/development/flutter` (PATH ajouté au `.bashrc`), prérequis Linux desktop installés (clang, cmake, ninja, GTK). `flutter doctor` : seul Android manque, hors périmètre.
+- Projet créé : bundle `com.ediar.mention`, plateformes iOS + Linux. Structure `lib/src/{domain,ui}`, interface `DictationEngine` + `FakeDictationEngine` (substitut Linux), écran d'accueil câblé sur le moteur simulé.
+- Vérifié : `flutter test` (3 tests OK), `flutter analyze` (0 problème), `flutter build linux --release` (OK).
+- `codemagic.yaml` écrit : workflow `ios-unsigned`, build sans signature, empaquetage `mention-unsigned.ipa` en artefact, déclenchement manuel.
+
+**Reste pour clore le lot 0** (nécessite les comptes de l'utilisateur) :
+1. Créer un dépôt GitHub privé et pousser (`git remote add` + `git push`).
+2. Connecter le dépôt à un compte Codemagic (gratuit) et lancer le workflow `ios-unsigned`.
+3. Télécharger l'IPA, le signer avec Sideloadly, l'installer sur l'iPhone 16 et vérifier que l'app se lance et que la dictée simulée s'affiche.
 
 ## Cadrage proposé le 2026-08-30
 

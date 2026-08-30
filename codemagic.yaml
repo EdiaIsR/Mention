@@ -1,0 +1,28 @@
+# Chaîne de build Codemagic — IPA iOS non signé, à signer ensuite avec
+# Sideloadly (Apple ID gratuit). Déclenchement manuel uniquement pour
+# économiser le palier gratuit (500 min/mois de macOS).
+workflows:
+  ios-unsigned:
+    name: iOS IPA non signé
+    instance_type: mac_mini_m2
+    max_build_duration: 20
+    environment:
+      flutter: 3.47.2
+      xcode: latest
+    scripts:
+      - name: Dépendances
+        script: flutter pub get
+      - name: Tests et analyse
+        script: |
+          flutter test
+          flutter analyze
+      - name: Build iOS sans signature
+        script: flutter build ios --release --no-codesign
+      - name: Empaqueter l'IPA
+        script: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -qr mention-unsigned.ipa Payload
+    artifacts:
+      - build/ios/iphoneos/mention-unsigned.ipa
