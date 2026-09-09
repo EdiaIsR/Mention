@@ -15,9 +15,23 @@ Application iOS personnelle de capture vocale : dictée, transcription, mise en 
 - `codemagic.yaml` écrit : workflow `ios-unsigned`, build sans signature, empaquetage `mention-unsigned.ipa` en artefact, déclenchement manuel.
 
 **Reste pour clore le lot 0** (nécessite les comptes de l'utilisateur) :
-1. Créer un dépôt GitHub privé et pousser (`git remote add` + `git push`).
-2. Connecter le dépôt à un compte Codemagic (gratuit) et lancer le workflow `ios-unsigned`.
-3. Télécharger l'IPA, le signer avec Sideloadly, l'installer sur l'iPhone 16 et vérifier que l'app se lance et que la dictée simulée s'affiche.
+1. ~~Créer un dépôt GitHub privé et pousser~~ — fait le 2026-08-30 (github.com/EdiaIsR/Mention, auth via gh).
+2. Codemagic connecté ; build lancé, résultat non confirmé.
+3. Sideloadly bloqué : le pilote « Apple Mobile Device USB Driver » ne s'accroche pas à l'iPhone (l'Explorateur le voit, iTunes non). Pistes données : redémarrage, devmgmt.msc → forcer le pilote depuis `C:\Program Files\Common Files\Apple\Mobile Device Support\Drivers`. **En attente — à reprendre à la prochaine livraison iPhone.**
+
+**2026-09-09 — Réorientation validée : développement PC d'abord.** L'app est utilisée sur ce PC via la cible Linux + WSLg (fenêtre native sur le bureau Windows 11, vérifié). Même code pour l'iPhone plus tard ; pas de build Windows natif (hors périmètre). La dictée reste simulée sur PC ; la saisie clavier a été ajoutée au lot 1 pour un usage réel.
+
+**2026-09-09 — Lot 1 livré (version PC).**
+- Persistance : Drift + **SQLCipher via les hooks Dart de `sqlite3` v3** (`pubspec.yaml → hooks.user_defines.sqlite3.source: sqlcipher`). Les paquets `sqlite3_flutter_libs`/`sqlcipher_flutter_libs` sont morts (fin de vie) — ne pas les réintroduire. Chiffrement au repos prouvé par test et vérifié sur le fichier réel (`file` → « data »).
+- Clé : `FileKeyStore` (fichier local, dev PC). Keychain iOS à faire à la livraison iPhone.
+- Schéma v1 : table `notes` (id, rawText, folderId?, createdAt, updatedAt). `rawText` immuable.
+- UI : liste (flux réactif Drift), page de dictée (enregistrement auto à la fin de session, y compris interruption — jamais de perte), saisie clavier, détail lecture seule.
+- Vérifié : 11 tests OK, analyze 0 problème, build linux OK, app lancée et base chiffrée créée.
+
+### Pièges de test appris (ne pas re-découvrir)
+- `tester.pump()` sans durée n'avance pas l'horloge simulée → les timers Drift à durée nulle ne se déclenchent pas. Toujours démonter l'app en fin de test de widget (`pumpWidget(SizedBox)` + `pump(1ms)`).
+- Ne jamais appeler `watchAll().first` (flux Drift) dans un `testWidgets` : l'annulation en plein `addStream` bloque `db.close()` → suite entière suspendue. Utiliser `getAll()`.
+- Après un `Navigator.push`, attendre la fin de la transition (~300 ms) **plus une frame** avant de taper un bouton de la nouvelle page (IgnorePointer de transition).
 
 ## Cadrage proposé le 2026-08-30
 

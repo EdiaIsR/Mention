@@ -1,19 +1,34 @@
 name: mention
-description: "A new Flutter project."
+description: "Capture vocale de notes, rangées dans une arborescence. App personnelle."
 publish_to: 'none'
 version: 0.1.0+1
+
+# Fait embarquer SQLCipher (chiffrement au repos) à la place de SQLite,
+# sur toutes les plateformes, via les hooks du paquet sqlite3 v3.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlcipher
 
 environment:
   sdk: ^3.13.2
 
 dependencies:
+  drift: ^2.34.4
+  drift_flutter: ^0.3.1
   flutter:
     sdk: flutter
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  sqlite3: ^3.5.2
+  uuid: ^4.6.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  drift_dev: ^2.34.6
+  build_runner: ^2.16.1
 
 flutter:
   uses-material-design: true
