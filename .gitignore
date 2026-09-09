@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Dictées réelles de l'utilisateur : données personnelles, jamais poussées
+corpus/
