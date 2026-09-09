@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mention/src/app.dart';
 import 'package:mention/src/data/database.dart';
+import 'package:mention/src/data/folder_repository.dart';
 import 'package:mention/src/data/note_repository.dart';
 import 'package:mention/src/domain/dictation/fake_dictation_engine.dart';
 
@@ -17,10 +18,14 @@ void main() {
     repo = NoteRepository(db);
   });
 
+
   tearDown(() => db.close());
 
-  Widget app(FakeDictationEngine engine) =>
-      MentionApp(dictationEngine: engine, noteRepository: repo);
+  Widget app(FakeDictationEngine engine) => MentionApp(
+        dictationEngine: engine,
+        noteRepository: repo,
+        folderRepository: FolderRepository(db),
+      );
 
   /// Démonte l'app avant la fin du test : purge le micro-timer que Drift
   /// programme quand un flux de requête perd son dernier abonné, sans quoi
@@ -32,12 +37,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1));
   }
 
-  testWidgets('liste vide au premier lancement', (tester) async {
-    await tester.pumpWidget(app(FakeDictationEngine()));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Aucune note'), findsOneWidget);
-    await unmountApp(tester);
-  });
 
   testWidgets('dicter, arrêter, retrouver la note dans la liste',
       (tester) async {
@@ -130,7 +129,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await repo.getAll(), isEmpty);
-    expect(find.textContaining('Aucune note'), findsOneWidget);
     await unmountApp(tester);
   });
 }

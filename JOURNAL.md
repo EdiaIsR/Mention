@@ -28,6 +28,13 @@ Application iOS personnelle de capture vocale : dictée, transcription, mise en 
 - UI : liste (flux réactif Drift), page de dictée (enregistrement auto à la fin de session, y compris interruption — jamais de perte), saisie clavier, détail lecture seule.
 - Vérifié : 11 tests OK, analyze 0 problème, build linux OK, app lancée et base chiffrée créée.
 
+**2026-09-09 — Lot 2 livré (version PC).**
+- Schéma v2 : table `folders` (id, name, parentId?, position). Migration v1→v2 testée sur base v1 fabriquée en SQL brut **et** exécutée avec succès sur la base réelle de l'utilisateur (note préservée, dossiers créés, user_version=2).
+- Dossiers par défaut : Tâches, Listes, Idées, Pensées (ids fixes `f-*`). La « Boîte de réception » du cadrage est virtuelle : les notes non classées vivent à la racine.
+- Suppression d'un dossier = son contenu (sous-dossiers, notes) remonte au parent ; jamais de destruction en cascade.
+- UI : navigation par dossier (un écran par dossier, la racine mêle dossiers et notes non classées), menus ⋮ (renommer/supprimer un dossier, déplacer/supprimer une note), création de note dans le dossier courant (dictée comme clavier), édition du texte d'une note (seule opération autorisée à modifier rawText, avec l'utilisateur aux commandes), recherche plein texte (LIKE, insensible casse ASCII — pas aux accents ; FTS possible plus tard si besoin).
+- Vérifié : 23 tests OK, analyze 0 problème, build linux OK, migration réelle OK.
+
 ### Pièges de test appris (ne pas re-découvrir)
 - `tester.pump()` sans durée n'avance pas l'horloge simulée → les timers Drift à durée nulle ne se déclenchent pas. Toujours démonter l'app en fin de test de widget (`pumpWidget(SizedBox)` + `pump(1ms)`).
 - Ne jamais appeler `watchAll().first` (flux Drift) dans un `testWidgets` : l'annulation en plein `addStream` bloque `db.close()` → suite entière suspendue. Utiliser `getAll()`.

@@ -22,12 +22,58 @@ class Notes extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Notes])
+/// Table des dossiers. parentId nul = racine.
+@DataClassName('FolderRow')
+class Folders extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get parentId => text().nullable()();
+  IntColumn get position => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [Notes, Folders])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) async {
+          await m.createAll();
+          await _seedDefaultFolders();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // v1 → v2 : la table notes existe déjà et n'est pas touchée.
+            await m.createTable(folders);
+            await _seedDefaultFolders();
+          }
+        },
+      );
+
+  /// Arborescence par défaut du cadrage (hors « Boîte de réception »,
+  /// qui est virtuelle : les notes non classées vivent à la racine).
+  /// Identifiants fixes pour rester stables d'une installation à l'autre.
+  Future<void> _seedDefaultFolders() async {
+    const defaults = [
+      ('f-taches', 'Tâches', 0),
+      ('f-listes', 'Listes', 1),
+      ('f-idees', 'Idées', 2),
+      ('f-pensees', 'Pensées', 3),
+    ];
+    for (final (id, name, position) in defaults) {
+      await into(folders).insert(FoldersCompanion.insert(
+        id: id,
+        name: name,
+        position: Value(position),
+      ));
+    }
+  }
 }
 
 /// Ouvre la base chiffrée dans le répertoire de données de l'app.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'src/app.dart';
 import 'src/data/database.dart';
+import 'src/data/folder_repository.dart';
 import 'src/data/key_store.dart';
 import 'src/data/note_repository.dart';
 import 'src/domain/dictation/fake_dictation_engine.dart';
@@ -17,5 +18,6 @@ Future<void> main() async {
   runApp(MentionApp(
     dictationEngine: FakeDictationEngine(),
     noteRepository: NoteRepository(db),
+    folderRepository: FolderRepository(db),
   ));
 }

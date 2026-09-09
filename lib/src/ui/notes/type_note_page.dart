@@ -5,9 +5,12 @@ import '../../data/note_repository.dart';
 /// Saisie d'une note au clavier — le mode principal sur PC, où la
 /// reconnaissance vocale iOS n'existe pas.
 class TypeNotePage extends StatefulWidget {
-  const TypeNotePage({super.key, required this.repository});
+  const TypeNotePage({super.key, required this.repository, this.folderId});
 
   final NoteRepository repository;
+
+  /// Dossier de destination de la note (nul = racine).
+  final String? folderId;
 
   @override
   State<TypeNotePage> createState() => _TypeNotePageState();
@@ -23,7 +26,8 @@ class _TypeNotePageState extends State<TypeNotePage> {
   }
 
   Future<void> _save() async {
-    await widget.repository.create(_controller.text);
+    await widget.repository
+        .create(_controller.text, folderId: widget.folderId);
     if (mounted) Navigator.of(context).pop();
   }
 

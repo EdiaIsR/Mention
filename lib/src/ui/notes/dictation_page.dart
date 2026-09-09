@@ -14,10 +14,14 @@ class DictationPage extends StatefulWidget {
     super.key,
     required this.repository,
     required this.engine,
+    this.folderId,
   });
 
   final NoteRepository repository;
   final DictationEngine engine;
+
+  /// Dossier de destination de la note (nul = racine).
+  final String? folderId;
 
   @override
   State<DictationPage> createState() => _DictationPageState();
@@ -55,7 +59,7 @@ class _DictationPageState extends State<DictationPage> {
   Future<void> _onSessionEnded() async {
     if (_saved) return;
     _saved = true;
-    await widget.repository.create(_transcript);
+    await widget.repository.create(_transcript, folderId: widget.folderId);
     if (mounted) {
       setState(() => _listening = false);
       Navigator.of(context).pop();
@@ -73,7 +77,7 @@ class _DictationPageState extends State<DictationPage> {
     // Écran fermé en pleine écoute (retour système) : sauvegarde de secours.
     if (!_saved && _transcript.trim().isNotEmpty) {
       _saved = true;
-      widget.repository.create(_transcript);
+      widget.repository.create(_transcript, folderId: widget.folderId);
     }
     widget.engine.stop();
     super.dispose();
