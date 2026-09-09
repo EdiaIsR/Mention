@@ -132,6 +132,38 @@ void main() {
     await unmountApp(tester);
   });
 
+  testWidgets('supprimer un dossier plein : la confirmation annonce le contenu',
+      (tester) async {
+    await notes.create('dedans', folderId: 'f-idees');
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    Future<void> openDeleteDialog() async {
+      // « Idées » est le 3e dossier de la racine.
+      await tester.tap(find.byType(PopupMenuButton<String>).at(2));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Supprimer'));
+      await tester.pumpAndSettle();
+    }
+
+    await openDeleteDialog();
+    expect(find.textContaining('1 note(s)'), findsOneWidget);
+
+    // Annuler ne détruit rien.
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+    expect(find.text('Idées'), findsOneWidget);
+    expect(await notes.getAll(), hasLength(1));
+
+    // Confirmer détruit le dossier et son contenu.
+    await openDeleteDialog();
+    await tester.tap(find.text('Supprimer').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Idées'), findsNothing);
+    expect(await notes.getAll(), isEmpty);
+    await unmountApp(tester);
+  });
+
   testWidgets('éditer le texte d\'une note', (tester) async {
     await notes.create('texte initial');
     await tester.pumpWidget(app());

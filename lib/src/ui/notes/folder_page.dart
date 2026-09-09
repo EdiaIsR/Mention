@@ -140,10 +140,15 @@ class FolderPage extends StatelessWidget {
                   title: 'Renommer le dossier', initial: f.name);
               if (name != null) await folderRepository.rename(f.id, name);
             case 'delete':
-              final ok = await confirmDelete(
-                  context,
-                  'Supprimer « ${f.name} » ? Son contenu remontera '
-                  'dans le dossier parent, rien ne sera perdu.');
+              final content = await folderRepository.countContent(f.id);
+              if (!context.mounted) return;
+              final hasContent = content.notes > 0 || content.folders > 0;
+              final message = hasContent
+                  ? 'Supprimer « ${f.name} » et tout son contenu '
+                      '(${content.notes} note(s), ${content.folders} '
+                      'sous-dossier(s)) ? Cette action est définitive.'
+                  : 'Supprimer le dossier « ${f.name} » ?';
+              final ok = await confirmDelete(context, message);
               if (ok) await folderRepository.delete(f.id);
           }
         },

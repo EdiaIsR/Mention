@@ -62,19 +62,44 @@ class FolderRepository {
         .write(FoldersCompanion(name: Value(trimmed)));
   }
 
-  /// Supprime un dossier. Son contenu (sous-dossiers et notes) n'est jamais
-  /// détruit : il remonte dans le dossier parent.
+  /// Contenu total d'un dossier (sous-arbre entier), pour que la
+  /// confirmation de suppression annonce ce qui sera détruit.
+  Future<({int notes, int folders})> countContent(String id) async {
+    final ids = await _subtreeIds(id);
+    final countExp = _db.notes.id.count();
+    final row = await (_db.selectOnly(_db.notes)
+          ..addColumns([countExp])
+          ..where(_db.notes.folderId.isIn(ids)))
+        .getSingle();
+    return (notes: row.read(countExp) ?? 0, folders: ids.length - 1);
+  }
+
+  /// Supprime un dossier **et tout son contenu** (sous-dossiers et notes).
+  /// Choix utilisateur du 2026-09-09 : suppression destructive, précédée
+  /// d'une confirmation qui annonce le contenu — pas de remontée au parent.
   Future<void> delete(String id) async {
-    final folder = await getById(id);
-    if (folder == null) return;
+    final ids = await _subtreeIds(id);
     await _db.transaction(() async {
-      final newParent = Value(folder.parentId);
-      await (_db.update(_db.folders)..where((t) => t.parentId.equals(id)))
-          .write(FoldersCompanion(parentId: newParent));
-      await (_db.update(_db.notes)..where((t) => t.folderId.equals(id)))
-          .write(NotesCompanion(folderId: newParent));
-      await (_db.delete(_db.folders)..where((t) => t.id.equals(id))).go();
+      await (_db.delete(_db.notes)..where((t) => t.folderId.isIn(ids))).go();
+      await (_db.delete(_db.folders)..where((t) => t.id.isIn(ids))).go();
     });
+  }
+
+  /// Identifiants du sous-arbre de [id], dossier lui-même compris.
+  Future<List<String>> _subtreeIds(String id) async {
+    final all = await _db.select(_db.folders).get();
+    final childrenOf = <String?, List<String>>{};
+    for (final f in all) {
+      childrenOf.putIfAbsent(f.parentId, () => []).add(f.id);
+    }
+    final result = <String>[];
+    final queue = [id];
+    while (queue.isNotEmpty) {
+      final current = queue.removeLast();
+      result.add(current);
+      queue.addAll(childrenOf[current] ?? const []);
+    }
+    return result;
   }
 
   Folder _toDomain(FolderRow row) => Folder(

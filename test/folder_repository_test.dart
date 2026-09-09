@@ -36,21 +36,29 @@ void main() {
     expect(children.map((f) => f.name).toList(), ['Projet Y']);
   });
 
-  test('supprimer un dossier fait remonter son contenu, sans rien détruire',
+  test('supprimer un dossier détruit tout son sous-arbre, et rien d\'autre',
       () async {
     final sub = await folders.create('Sous-projet', parentId: 'f-idees');
-    final note = await notes.create('idée précieuse', folderId: 'f-idees');
-    await folders.create('Petit-fils', parentId: sub!.id);
+    final inFolder = await notes.create('idée sacrifiée', folderId: 'f-idees');
+    final inSub = await notes.create('détail sacrifié', folderId: sub!.id);
+    final elsewhere = await notes.create('note épargnée', folderId: 'f-taches');
+    await folders.create('Petit-fils', parentId: sub.id);
+
+    // Le décompte annoncé avant suppression est exact.
+    final content = await folders.countContent('f-idees');
+    expect(content.notes, 2);
+    expect(content.folders, 2); // Sous-projet + Petit-fils
 
     await folders.delete('f-idees');
 
-    // La note remonte à la racine (parent de f-idees).
-    expect((await notes.getById(note!.id))!.folderId, isNull);
-    // Le sous-dossier remonte à la racine, son propre fils le suit.
-    final rootFolders = await folders.watchChildren(null).first;
-    expect(rootFolders.map((f) => f.name), contains('Sous-projet'));
-    final grandChildren = await folders.watchChildren(sub.id).first;
-    expect(grandChildren.map((f) => f.name).toList(), ['Petit-fils']);
+    expect(await folders.getById('f-idees'), isNull);
+    expect(await folders.getById(sub.id), isNull);
+    expect(await notes.getById(inFolder!.id), isNull);
+    expect(await notes.getById(inSub!.id), isNull);
+    // Le reste de la base est intact.
+    expect((await notes.getById(elsewhere!.id))!.rawText, 'note épargnée');
+    expect((await folders.getAll()).map((f) => f.name),
+        containsAll(['Tâches', 'Listes', 'Pensées']));
   });
 
   test('déplacer et éditer une note', () async {

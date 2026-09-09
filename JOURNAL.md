@@ -31,7 +31,7 @@ Application iOS personnelle de capture vocale : dictée, transcription, mise en 
 **2026-09-09 — Lot 2 livré (version PC).**
 - Schéma v2 : table `folders` (id, name, parentId?, position). Migration v1→v2 testée sur base v1 fabriquée en SQL brut **et** exécutée avec succès sur la base réelle de l'utilisateur (note préservée, dossiers créés, user_version=2).
 - Dossiers par défaut : Tâches, Listes, Idées, Pensées (ids fixes `f-*`). La « Boîte de réception » du cadrage est virtuelle : les notes non classées vivent à la racine.
-- Suppression d'un dossier = son contenu (sous-dossiers, notes) remonte au parent ; jamais de destruction en cascade.
+- Suppression d'un dossier = **destruction du sous-arbre entier** (choix utilisateur du 2026-09-09, remplace la remontée au parent initialement livrée). La confirmation annonce le décompte exact (notes, sous-dossiers) avant d'agir.
 - UI : navigation par dossier (un écran par dossier, la racine mêle dossiers et notes non classées), menus ⋮ (renommer/supprimer un dossier, déplacer/supprimer une note), création de note dans le dossier courant (dictée comme clavier), édition du texte d'une note (seule opération autorisée à modifier rawText, avec l'utilisateur aux commandes), recherche plein texte (LIKE, insensible casse ASCII — pas aux accents ; FTS possible plus tard si besoin).
 - Vérifié : 23 tests OK, analyze 0 problème, build linux OK, migration réelle OK.
 
