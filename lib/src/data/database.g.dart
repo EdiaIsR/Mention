@@ -39,6 +39,39 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _refinedTextMeta = const VerificationMeta(
+    'refinedText',
+  );
+  @override
+  late final GeneratedColumn<String> refinedText = GeneratedColumn<String>(
+    'refined_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _summaryTextMeta = const VerificationMeta(
+    'summaryText',
+  );
+  @override
+  late final GeneratedColumn<String> summaryText = GeneratedColumn<String>(
+    'summary_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pendingOpMeta = const VerificationMeta(
+    'pendingOp',
+  );
+  @override
+  late final GeneratedColumn<String> pendingOp = GeneratedColumn<String>(
+    'pending_op',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -66,6 +99,9 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
     id,
     rawText,
     folderId,
+    refinedText,
+    summaryText,
+    pendingOp,
     createdAt,
     updatedAt,
   ];
@@ -98,6 +134,30 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
       context.handle(
         _folderIdMeta,
         folderId.isAcceptableOrUnknown(data['folder_id']!, _folderIdMeta),
+      );
+    }
+    if (data.containsKey('refined_text')) {
+      context.handle(
+        _refinedTextMeta,
+        refinedText.isAcceptableOrUnknown(
+          data['refined_text']!,
+          _refinedTextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('summary_text')) {
+      context.handle(
+        _summaryTextMeta,
+        summaryText.isAcceptableOrUnknown(
+          data['summary_text']!,
+          _summaryTextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('pending_op')) {
+      context.handle(
+        _pendingOpMeta,
+        pendingOp.isAcceptableOrUnknown(data['pending_op']!, _pendingOpMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -137,6 +197,18 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
         DriftSqlType.string,
         data['${effectivePrefix}folder_id'],
       ),
+      refinedText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}refined_text'],
+      ),
+      summaryText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}summary_text'],
+      ),
+      pendingOp: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pending_op'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -158,12 +230,25 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   final String id;
   final String rawText;
   final String? folderId;
+
+  /// Version reformulée par le LLM, à la demande. rawText reste intact.
+  final String? refinedText;
+
+  /// Synthèse produite par le LLM, à la demande. rawText reste intact.
+  final String? summaryText;
+
+  /// Enrichissement demandé mais pas encore obtenu (réseau/quota) :
+  /// 'reformulate' ou 'summarize'. Nul = rien en attente.
+  final String? pendingOp;
   final DateTime createdAt;
   final DateTime updatedAt;
   const NoteRow({
     required this.id,
     required this.rawText,
     this.folderId,
+    this.refinedText,
+    this.summaryText,
+    this.pendingOp,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -174,6 +259,15 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
     map['raw_text'] = Variable<String>(rawText);
     if (!nullToAbsent || folderId != null) {
       map['folder_id'] = Variable<String>(folderId);
+    }
+    if (!nullToAbsent || refinedText != null) {
+      map['refined_text'] = Variable<String>(refinedText);
+    }
+    if (!nullToAbsent || summaryText != null) {
+      map['summary_text'] = Variable<String>(summaryText);
+    }
+    if (!nullToAbsent || pendingOp != null) {
+      map['pending_op'] = Variable<String>(pendingOp);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -187,6 +281,15 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
       folderId: folderId == null && nullToAbsent
           ? const Value.absent()
           : Value(folderId),
+      refinedText: refinedText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(refinedText),
+      summaryText: summaryText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(summaryText),
+      pendingOp: pendingOp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pendingOp),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -201,6 +304,9 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
       id: serializer.fromJson<String>(json['id']),
       rawText: serializer.fromJson<String>(json['rawText']),
       folderId: serializer.fromJson<String?>(json['folderId']),
+      refinedText: serializer.fromJson<String?>(json['refinedText']),
+      summaryText: serializer.fromJson<String?>(json['summaryText']),
+      pendingOp: serializer.fromJson<String?>(json['pendingOp']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -212,6 +318,9 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
       'id': serializer.toJson<String>(id),
       'rawText': serializer.toJson<String>(rawText),
       'folderId': serializer.toJson<String?>(folderId),
+      'refinedText': serializer.toJson<String?>(refinedText),
+      'summaryText': serializer.toJson<String?>(summaryText),
+      'pendingOp': serializer.toJson<String?>(pendingOp),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -221,12 +330,18 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
     String? id,
     String? rawText,
     Value<String?> folderId = const Value.absent(),
+    Value<String?> refinedText = const Value.absent(),
+    Value<String?> summaryText = const Value.absent(),
+    Value<String?> pendingOp = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => NoteRow(
     id: id ?? this.id,
     rawText: rawText ?? this.rawText,
     folderId: folderId.present ? folderId.value : this.folderId,
+    refinedText: refinedText.present ? refinedText.value : this.refinedText,
+    summaryText: summaryText.present ? summaryText.value : this.summaryText,
+    pendingOp: pendingOp.present ? pendingOp.value : this.pendingOp,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -235,6 +350,13 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
       id: data.id.present ? data.id.value : this.id,
       rawText: data.rawText.present ? data.rawText.value : this.rawText,
       folderId: data.folderId.present ? data.folderId.value : this.folderId,
+      refinedText: data.refinedText.present
+          ? data.refinedText.value
+          : this.refinedText,
+      summaryText: data.summaryText.present
+          ? data.summaryText.value
+          : this.summaryText,
+      pendingOp: data.pendingOp.present ? data.pendingOp.value : this.pendingOp,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -246,6 +368,9 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
           ..write('id: $id, ')
           ..write('rawText: $rawText, ')
           ..write('folderId: $folderId, ')
+          ..write('refinedText: $refinedText, ')
+          ..write('summaryText: $summaryText, ')
+          ..write('pendingOp: $pendingOp, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -253,7 +378,16 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, rawText, folderId, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    rawText,
+    folderId,
+    refinedText,
+    summaryText,
+    pendingOp,
+    createdAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -261,6 +395,9 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
           other.id == this.id &&
           other.rawText == this.rawText &&
           other.folderId == this.folderId &&
+          other.refinedText == this.refinedText &&
+          other.summaryText == this.summaryText &&
+          other.pendingOp == this.pendingOp &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -269,6 +406,9 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
   final Value<String> id;
   final Value<String> rawText;
   final Value<String?> folderId;
+  final Value<String?> refinedText;
+  final Value<String?> summaryText;
+  final Value<String?> pendingOp;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -276,6 +416,9 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
     this.id = const Value.absent(),
     this.rawText = const Value.absent(),
     this.folderId = const Value.absent(),
+    this.refinedText = const Value.absent(),
+    this.summaryText = const Value.absent(),
+    this.pendingOp = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -284,6 +427,9 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
     required String id,
     required String rawText,
     this.folderId = const Value.absent(),
+    this.refinedText = const Value.absent(),
+    this.summaryText = const Value.absent(),
+    this.pendingOp = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -295,6 +441,9 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
     Expression<String>? id,
     Expression<String>? rawText,
     Expression<String>? folderId,
+    Expression<String>? refinedText,
+    Expression<String>? summaryText,
+    Expression<String>? pendingOp,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -303,6 +452,9 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
       if (id != null) 'id': id,
       if (rawText != null) 'raw_text': rawText,
       if (folderId != null) 'folder_id': folderId,
+      if (refinedText != null) 'refined_text': refinedText,
+      if (summaryText != null) 'summary_text': summaryText,
+      if (pendingOp != null) 'pending_op': pendingOp,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -313,6 +465,9 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
     Value<String>? id,
     Value<String>? rawText,
     Value<String?>? folderId,
+    Value<String?>? refinedText,
+    Value<String?>? summaryText,
+    Value<String?>? pendingOp,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -321,6 +476,9 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
       id: id ?? this.id,
       rawText: rawText ?? this.rawText,
       folderId: folderId ?? this.folderId,
+      refinedText: refinedText ?? this.refinedText,
+      summaryText: summaryText ?? this.summaryText,
+      pendingOp: pendingOp ?? this.pendingOp,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -338,6 +496,15 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
     }
     if (folderId.present) {
       map['folder_id'] = Variable<String>(folderId.value);
+    }
+    if (refinedText.present) {
+      map['refined_text'] = Variable<String>(refinedText.value);
+    }
+    if (summaryText.present) {
+      map['summary_text'] = Variable<String>(summaryText.value);
+    }
+    if (pendingOp.present) {
+      map['pending_op'] = Variable<String>(pendingOp.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -357,6 +524,9 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
           ..write('id: $id, ')
           ..write('rawText: $rawText, ')
           ..write('folderId: $folderId, ')
+          ..write('refinedText: $refinedText, ')
+          ..write('summaryText: $summaryText, ')
+          ..write('pendingOp: $pendingOp, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -687,6 +857,9 @@ typedef $$NotesTableCreateCompanionBuilder = NotesCompanion Function({
   required String id,
   required String rawText,
   Value<String?> folderId,
+  Value<String?> refinedText,
+  Value<String?> summaryText,
+  Value<String?> pendingOp,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<int> rowid,
@@ -695,6 +868,9 @@ typedef $$NotesTableUpdateCompanionBuilder = NotesCompanion Function({
   Value<String> id,
   Value<String> rawText,
   Value<String?> folderId,
+  Value<String?> refinedText,
+  Value<String?> summaryText,
+  Value<String?> pendingOp,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<int> rowid,
@@ -720,6 +896,21 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
 
   ColumnFilters<String> get folderId => $composableBuilder(
     column: $table.folderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get refinedText => $composableBuilder(
+    column: $table.refinedText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get summaryText => $composableBuilder(
+    column: $table.summaryText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pendingOp => $composableBuilder(
+    column: $table.pendingOp,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -758,6 +949,21 @@ class $$NotesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get refinedText => $composableBuilder(
+    column: $table.refinedText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get summaryText => $composableBuilder(
+    column: $table.summaryText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pendingOp => $composableBuilder(
+    column: $table.pendingOp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -786,6 +992,19 @@ class $$NotesTableAnnotationComposer
 
   GeneratedColumn<String> get folderId =>
       $composableBuilder(column: $table.folderId, builder: (column) => column);
+
+  GeneratedColumn<String> get refinedText => $composableBuilder(
+    column: $table.refinedText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get summaryText => $composableBuilder(
+    column: $table.summaryText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get pendingOp =>
+      $composableBuilder(column: $table.pendingOp, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -825,6 +1044,9 @@ class $$NotesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> rawText = const Value.absent(),
                 Value<String?> folderId = const Value.absent(),
+                Value<String?> refinedText = const Value.absent(),
+                Value<String?> summaryText = const Value.absent(),
+                Value<String?> pendingOp = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -832,6 +1054,9 @@ class $$NotesTableTableManager
                 id: id,
                 rawText: rawText,
                 folderId: folderId,
+                refinedText: refinedText,
+                summaryText: summaryText,
+                pendingOp: pendingOp,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -841,6 +1066,9 @@ class $$NotesTableTableManager
                 required String id,
                 required String rawText,
                 Value<String?> folderId = const Value.absent(),
+                Value<String?> refinedText = const Value.absent(),
+                Value<String?> summaryText = const Value.absent(),
+                Value<String?> pendingOp = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -848,6 +1076,9 @@ class $$NotesTableTableManager
                 id: id,
                 rawText: rawText,
                 folderId: folderId,
+                refinedText: refinedText,
+                summaryText: summaryText,
+                pendingOp: pendingOp,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

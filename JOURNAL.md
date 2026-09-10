@@ -35,10 +35,19 @@ Application iOS personnelle de capture vocale : dictée, transcription, mise en 
 - UI : navigation par dossier (un écran par dossier, la racine mêle dossiers et notes non classées), menus ⋮ (renommer/supprimer un dossier, déplacer/supprimer une note), création de note dans le dossier courant (dictée comme clavier), édition du texte d'une note (seule opération autorisée à modifier rawText, avec l'utilisateur aux commandes), recherche plein texte (LIKE, insensible casse ASCII — pas aux accents ; FTS possible plus tard si besoin).
 - Vérifié : 23 tests OK, analyze 0 problème, build linux OK, migration réelle OK.
 
+**2026-09-10 — Socle du lot 3 livré (fournisseur LLM simulé).** En attente des dictées réelles de l'utilisateur pour le comparatif des fournisseurs gratuits.
+- Schéma v3 : `notes` + `refinedText`, `summaryText`, `pendingOp` (migration v2→v3 testée + exécutée sur la base réelle : v3, 5 notes intactes).
+- `LlmProvider` (reformulate/summarize) avec contrat d'erreurs : `LlmUnavailableException` → mise en attente + reprise auto (`retryPending` au lancement) ; `LlmBadOutputException` → une seule relance puis abandon propre. `FakeLlmProvider` pour PC/tests.
+- `EnrichmentService` : validation stricte de sortie, jamais d'exception vers l'UI (enum `EnrichmentOutcome`), rawText jamais modifié par le LLM.
+- UI : menu « Reformuler »/« Synthétiser » sur une note, versions affichées sous le brut (cartes), état « en attente » visible, snackbars sobres.
+- Vérifié : 32 tests OK, analyze 0, build linux OK, migration réelle OK.
+- Reste pour clore le lot 3 : corpus de dictées réelles → comparatif Gemini/Mistral/Groq et équivalents (qualité FR, quotas, latence) → implémentation du fournisseur retenu (clé API dans le Keychain iOS / fichier local PC) → recommandation argumentée.
+
 ### Pièges de test appris (ne pas re-découvrir)
 - `tester.pump()` sans durée n'avance pas l'horloge simulée → les timers Drift à durée nulle ne se déclenchent pas. Toujours démonter l'app en fin de test de widget (`pumpWidget(SizedBox)` + `pump(1ms)`).
 - Ne jamais appeler `watchAll().first` (flux Drift) dans un `testWidgets` : l'annulation en plein `addStream` bloque `db.close()` → suite entière suspendue. Utiliser `getAll()`.
 - Après un `Navigator.push`, attendre la fin de la transition (~300 ms) **plus une frame** avant de taper un bouton de la nouvelle page (IgnorePointer de transition).
+- Jamais de `Future.delayed` (même à durée nulle) dans un chemin attendu directement par un test de widget sans pompage : sous FakeAsync le timer ne se déclenche jamais → suspension. Garder les substituts purs microtâches quand le délai est nul.
 
 ## Cadrage proposé le 2026-08-30
 

@@ -10,7 +10,50 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 /// La base v1 est fabriquée en SQL brut, à l'identique du schéma généré
 /// par Drift au lot 1.
 void main() {
-  test('une base v1 survit à la migration v2 et reçoit les dossiers', () async {
+  test('une base v2 survit à la migration v3 (colonnes ajoutées)', () async {
+    final dir = Directory.systemTemp.createTempSync('mention_migration_v2');
+    final file = File(p.join(dir.path, 'v2.db'));
+    addTearDown(() => dir.deleteSync(recursive: true));
+
+    final raw = sqlite.sqlite3.open(file.path);
+    raw
+      ..execute('''
+        CREATE TABLE notes (
+          id TEXT NOT NULL,
+          raw_text TEXT NOT NULL,
+          folder_id TEXT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          PRIMARY KEY (id)
+        );
+      ''')
+      ..execute('''
+        CREATE TABLE folders (
+          id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          parent_id TEXT NULL,
+          position INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY (id)
+        );
+      ''')
+      ..execute("INSERT INTO notes VALUES ('n1', 'note v2', NULL, 1000, 1000);")
+      ..execute("INSERT INTO folders VALUES ('f-taches', 'Tâches', NULL, 0);")
+      ..execute('PRAGMA user_version = 2;')
+      ..close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    addTearDown(db.close);
+
+    final notes = await db.select(db.notes).get();
+    expect(notes.single.rawText, 'note v2');
+    expect(notes.single.refinedText, isNull);
+    expect(notes.single.pendingOp, isNull);
+    // Pas de re-seed des dossiers par défaut en v2→v3.
+    final folders = await db.select(db.folders).get();
+    expect(folders, hasLength(1));
+  });
+
+  test('une base v1 survit aux migrations jusqu\'au schéma courant', () async {
     final dir = Directory.systemTemp.createTempSync('mention_migration');
     final file = File(p.join(dir.path, 'v1.db'));
     addTearDown(() => dir.deleteSync(recursive: true));
@@ -45,11 +88,11 @@ void main() {
     expect(folders.map((f) => f.name).toSet(),
         {'Tâches', 'Listes', 'Idées', 'Pensées'});
 
-    // La version enregistrée est bien passée à 2.
+    // La version enregistrée est bien celle du schéma courant.
     final version = await db
         .customSelect('PRAGMA user_version;')
         .getSingle()
         .then((row) => row.data.values.first);
-    expect(version, 2);
+    expect(version, db.schemaVersion);
   });
 }

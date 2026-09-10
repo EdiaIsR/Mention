@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/folder_repository.dart';
 import '../../data/note_repository.dart';
+import '../../domain/llm/enrichment_service.dart';
 import '../../domain/note.dart';
 import '../format.dart';
 import 'note_edit_page.dart';
@@ -12,10 +13,12 @@ class SearchPage extends StatefulWidget {
     super.key,
     required this.noteRepository,
     required this.folderRepository,
+    required this.enrichmentService,
   });
 
   final NoteRepository noteRepository;
   final FolderRepository folderRepository;
+  final EnrichmentService enrichmentService;
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -65,6 +68,7 @@ class _SearchPageState extends State<SearchPage> {
                         note: note,
                         noteRepository: widget.noteRepository,
                         folderRepository: widget.folderRepository,
+                        enrichmentService: widget.enrichmentService,
                       ),
                     ),
                   ),

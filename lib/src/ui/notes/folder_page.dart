@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/folder_repository.dart';
 import '../../data/note_repository.dart';
 import '../../domain/dictation/dictation_engine.dart';
+import '../../domain/llm/enrichment_service.dart';
 import '../../domain/folder.dart';
 import '../../domain/note.dart';
 import '../format.dart';
@@ -21,12 +22,14 @@ class FolderPage extends StatelessWidget {
     required this.folderRepository,
     required this.noteRepository,
     required this.engine,
+    required this.enrichmentService,
   });
 
   final Folder? folder;
   final FolderRepository folderRepository;
   final NoteRepository noteRepository;
   final DictationEngine engine;
+  final EnrichmentService enrichmentService;
 
   String? get _folderId => folder?.id;
 
@@ -44,6 +47,7 @@ class FolderPage extends StatelessWidget {
                 builder: (_) => SearchPage(
                   noteRepository: noteRepository,
                   folderRepository: folderRepository,
+                  enrichmentService: enrichmentService,
                 ),
               ),
             ),
@@ -129,6 +133,7 @@ class FolderPage extends StatelessWidget {
             folderRepository: folderRepository,
             noteRepository: noteRepository,
             engine: engine,
+            enrichmentService: enrichmentService,
           ),
         ),
       ),
@@ -170,6 +175,7 @@ class FolderPage extends StatelessWidget {
             note: n,
             noteRepository: noteRepository,
             folderRepository: folderRepository,
+            enrichmentService: enrichmentService,
           ),
         ),
       ),

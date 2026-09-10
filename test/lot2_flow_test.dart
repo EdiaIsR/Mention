@@ -6,6 +6,8 @@ import 'package:mention/src/data/database.dart';
 import 'package:mention/src/data/folder_repository.dart';
 import 'package:mention/src/data/note_repository.dart';
 import 'package:mention/src/domain/dictation/fake_dictation_engine.dart';
+import 'package:mention/src/domain/llm/enrichment_service.dart';
+import 'package:mention/src/domain/llm/fake_llm_provider.dart';
 
 /// Parcours du lot 2 : arborescence (créer, renommer, déplacer, supprimer)
 /// et recherche, à travers l'UI.
@@ -26,6 +28,8 @@ void main() {
         dictationEngine: FakeDictationEngine(),
         noteRepository: notes,
         folderRepository: folders,
+        enrichmentService:
+            EnrichmentService(provider: FakeLlmProvider(), notes: notes),
       );
 
   // Voir JOURNAL.md : purge le micro-timer de fermeture des flux Drift.

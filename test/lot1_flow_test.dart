@@ -6,6 +6,8 @@ import 'package:mention/src/data/database.dart';
 import 'package:mention/src/data/folder_repository.dart';
 import 'package:mention/src/data/note_repository.dart';
 import 'package:mention/src/domain/dictation/fake_dictation_engine.dart';
+import 'package:mention/src/domain/llm/enrichment_service.dart';
+import 'package:mention/src/domain/llm/fake_llm_provider.dart';
 
 /// Parcours complets du lot 1 : dicter → retrouver, saisir → retrouver,
 /// interruption → rien de perdu.
@@ -25,6 +27,8 @@ void main() {
         dictationEngine: engine,
         noteRepository: repo,
         folderRepository: FolderRepository(db),
+        enrichmentService:
+            EnrichmentService(provider: FakeLlmProvider(), notes: repo),
       );
 
   /// Démonte l'app avant la fin du test : purge le micro-timer que Drift

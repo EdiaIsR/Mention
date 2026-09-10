@@ -15,6 +15,17 @@ class Notes extends Table {
   TextColumn get id => text()();
   TextColumn get rawText => text()();
   TextColumn get folderId => text().nullable()();
+
+  /// Version reformulée par le LLM, à la demande. rawText reste intact.
+  TextColumn get refinedText => text().nullable()();
+
+  /// Synthèse produite par le LLM, à la demande. rawText reste intact.
+  TextColumn get summaryText => text().nullable()();
+
+  /// Enrichissement demandé mais pas encore obtenu (réseau/quota) :
+  /// 'reformulate' ou 'summarize'. Nul = rien en attente.
+  TextColumn get pendingOp => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -39,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -52,6 +63,12 @@ class AppDatabase extends _$AppDatabase {
             // v1 → v2 : la table notes existe déjà et n'est pas touchée.
             await m.createTable(folders);
             await _seedDefaultFolders();
+          }
+          if (from < 3) {
+            // v2 → v3 : champs d'enrichissement LLM, tous nullables.
+            await m.addColumn(notes, notes.refinedText);
+            await m.addColumn(notes, notes.summaryText);
+            await m.addColumn(notes, notes.pendingOp);
           }
         },
       );
