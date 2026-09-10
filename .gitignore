@@ -49,3 +49,4 @@ app.*.map.json
 
 # Dictées réelles de l'utilisateur : données personnelles, jamais poussées
 corpus/
+donnees-wsl/

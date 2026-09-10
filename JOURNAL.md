@@ -4,6 +4,8 @@ Application iOS personnelle de capture vocale : dictée, transcription, mise en 
 
 ## État du projet
 
+**2026-09-10 — Passation.** Décision utilisateur : produire d'abord une vraie application **Windows** (.exe natif), iOS ensuite. Le développement quitte WSL ; le projet est repris par une IA travaillant directement sous Windows. Copie complète (dépôt + historique git + données réelles) déposée dans `C:\Users\edia-\Documents\Codex\Mention`. Instructions de reprise : `PROMPT-REPRISE.md` à la racine. Les données réelles (base chiffrée + clé, 5 notes, schéma v3) sont dans `donnees-wsl/` (hors git) — à restaurer dans le répertoire de données de l'app Windows au premier lancement.
+
 **2026-08-30 — Cadrage validé par l'utilisateur.** Arborescence par défaut à revoir plus tard avec lui.
 
 **Appareil cible** : iPhone 16, iOS 26.2.
