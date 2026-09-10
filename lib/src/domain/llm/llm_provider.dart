@@ -11,6 +11,12 @@ library;
 abstract interface class LlmProvider {
   /// Met au propre un texte dicté (langage parlé → écrit), sans en changer
   /// le sens ni la langue. Renvoie uniquement le texte reformulé.
+  ///
+  /// Exigence utilisateur (2026-09-10) : la reformulation ne doit JAMAIS
+  /// omettre une information dictée — dates, noms, quantités, détails.
+  /// Elle nettoie la forme, elle ne résume pas ; condenser est le rôle
+  /// exclusif de [summarize]. Ce critère est éliminatoire dans le
+  /// comparatif des fournisseurs.
   Future<String> reformulate(String rawText);
 
   /// Condense un texte dicté en une synthèse courte et fidèle.

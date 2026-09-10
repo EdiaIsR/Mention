@@ -43,6 +43,10 @@ Application iOS personnelle de capture vocale : dictée, transcription, mise en 
 - Vérifié : 32 tests OK, analyze 0, build linux OK, migration réelle OK.
 - Reste pour clore le lot 3 : corpus de dictées réelles → comparatif Gemini/Mistral/Groq et équivalents (qualité FR, quotas, latence) → implémentation du fournisseur retenu (clé API dans le Keychain iOS / fichier local PC) → recommandation argumentée.
 
+**2026-09-10 — Exigence produit : la reformulation n'omet jamais une information dictée** (dates, noms, quantités, détails). Elle nettoie la forme sans condenser — condenser est le rôle exclusif de la synthèse. Critère éliminatoire du comparatif de fournisseurs ; à vérifier sur chaque échantillon du corpus.
+
+**2026-09-10 — Idée utilisateur à l'étude : commandes vocales** (créer/renommer dossier, mode sombre…) déclenchées par un mot-clé distinct en début de dictée. Avis rendu : faisable, recommandé après le lot 4 (le classement automatique fournira la machinerie intention→action structurée + validation). Décision d'engagement en attente.
+
 ### Pièges de test appris (ne pas re-découvrir)
 - `tester.pump()` sans durée n'avance pas l'horloge simulée → les timers Drift à durée nulle ne se déclenchent pas. Toujours démonter l'app en fin de test de widget (`pumpWidget(SizedBox)` + `pump(1ms)`).
 - Ne jamais appeler `watchAll().first` (flux Drift) dans un `testWidgets` : l'annulation en plein `addStream` bloque `db.close()` → suite entière suspendue. Utiliser `getAll()`.
